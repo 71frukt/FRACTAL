@@ -3,13 +3,17 @@
 
 #include "complex_nums.h"
 #include "mandelbrot.h"
+#include "flag_work.h"
 
-int main()
+int main(const int argc, const char *argv[])
 {
+    EnvironmentInfo env_settings = GetEnvironmentInfo(argc, argv);
+    
     sf::RenderWindow window(sf::VideoMode({800, 800}), "sosal?");
-    UserScreen user_screen = {&window, {0, 0}, START_SCALE};
+    UserScreen user_screen = {};
+    SetWindowSettings(&user_screen, &window, &env_settings);
 
-    while (window.isOpen()) 
+    while (window.isOpen())
     {
         while (std::optional<sf::Event> event = window.pollEvent()) 
         {
@@ -21,9 +25,8 @@ int main()
         }
 
         window.clear(sf::Color::Black);
-        printf("shift.x = %f\n", user_screen.offset.x);
 
-        ERROR_HANDLER(DrawMandelbrot(&user_screen));
+        ERROR_HANDLER(DrawMandelbrot(&user_screen, &env_settings));
 
         window.display();
 

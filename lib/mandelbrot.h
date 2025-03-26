@@ -31,9 +31,28 @@ struct UserScreen
     double            scale;
 };
 
-FractalError DrawPixel       (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
-FractalError DrawMandelbrot  (const UserScreen *const user_screen);
-FractalError KeyboardHandler (const sf::Event::KeyPressed* key_event, UserScreen *user_screen);
+struct EnvironmentInfo
+{
+    sf::RenderWindow *window;
+    Vector2d          offset;
+    double            scale;
+
+    Vector2d          start_offset;
+    size_t            max_calc_iterations_num;
+    double            start_scale;
+    int               border_radius;
+
+    bool              use_custom_settings;
+    const char       *source_settings_file;
+    
+    bool              save_final_settings;
+    const char       *dest_settings_file;
+};
+
+FractalError SetWindowSettings  (UserScreen *const user_screen, sf::RenderWindow *window, EnvironmentInfo *const env_settings);
+FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
+FractalError DrawMandelbrot     (const UserScreen *const user_screen, const EnvironmentInfo *const env_settings);
+FractalError KeyboardHandler    (const sf::Event::KeyPressed* key_event, UserScreen *user_screen);
 
 Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 

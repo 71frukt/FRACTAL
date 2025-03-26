@@ -3,9 +3,20 @@
 
 #include "mandelbrot.h"
 
+
+FractalError SetWindowSettings(UserScreen *const user_screen, sf::RenderWindow *window, EnvironmentInfo *const env_settings)
+{
+    user_screen->window = window;
+    user_screen->offset = env_settings->start_offset;
+    user_screen->scale  = env_settings->start_scale;
+
+    USER_SCREEN_ASSERT(user_screen);
+    return SUCCESS_EXIT;
+}
+
 FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 {
-    if (window == NULL) return {WINDOW_PTR_ERR, {__FILE__, __func__, __LINE__}};
+    ON_GRAPH_DEBUG(if (window == NULL) return {WINDOW_PTR_ERR, {__FILE__, __func__, __LINE__}});
 
     sf::VertexArray vert_arr(sf::PrimitiveType::Points, 1);
 
@@ -18,31 +29,33 @@ FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pix
 }
 
 
-FractalError DrawMandelbrot(const UserScreen *const user_screen)
+FractalError DrawMandelbrot(const UserScreen *const user_screen, const EnvironmentInfo *const env_settings)
 {
     USER_SCREEN_ASSERT(user_screen);
+
+    const size_t max_calc_iterations_num = env_settings->max_calc_iterations_num;
 
     Vector2i window_size = {(int)user_screen->window->getSize().x , (int)user_screen->window->getSize().y};
 
     static double inverse_window_size_x = 1 / (double)window_size.x;  // с помощью TYPICAL_WINDOW_SIZE сдвигаем разряд для большей точности
-    static double inverse_window_size_y = 1 / (double)window_size.y;
+    // static double inverse_window_size_y = 1 / (double)window_size.y; // useless
     
     Vector2i lu_window_corner = {-window_size.x / 2 , -window_size.y / 2};              // ox directed to left, oy - down
-    Vector2i rd_window_corner = { window_size.y / 2 ,  window_size.y / 2};
+    Vector2i rd_window_corner = { window_size.x / 2 ,  window_size.y / 2};
     
-    Vector2d offset_on_complex_plane = {user_screen->offset.x / (double)window_size.x, user_screen->offset.y / (double)window_size.x}; 
+    Vector2d offset_on_complex_plane = {user_screen->offset.x / (double)window_size.x, user_screen->offset.y / (double)window_size.y}; 
 
     for (int y = lu_window_corner.y; y <= rd_window_corner.y; y++)
     {
         for (int x = lu_window_corner.x; x <= rd_window_corner.x; x++)
         {
             Vector2d const_complex = {(double)(x * user_screen->scale * inverse_window_size_x) + offset_on_complex_plane.x ,
-                                      (double)(y * user_screen->scale * inverse_window_size_y) + offset_on_complex_plane.y};
+                                      (double)(y * user_screen->scale * inverse_window_size_x) + offset_on_complex_plane.y};
             Vector2d cur_complex   = {0, 0};
             Vector2d prev_complex  = {0, 0};
             
             size_t n = 0;
-            for ( ; n <= MAX_SEQUENCE_N; n++)
+            for ( ; n <= max_calc_iterations_num; n++)
             {
                 cur_complex  = SquareComplex(prev_complex) + const_complex;
                 prev_complex = cur_complex;
