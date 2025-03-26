@@ -12,11 +12,11 @@ using Vector2f = sf::Vector2f;
 using Vector2d = sf::Vector2<double>;
 using Color    = sf::Color;
 
-const int BORDER_RADIUS_SQ = 3 * 3;     // the boundary, after crossing which the sequence of pixels in the N-th degree is considered infinitely large
+const int BORDER_RADIUS_SQ = 3 * 3;         // the boundary, after crossing which the sequence of pixels in the N-th degree is considered infinitely large
 const int MAX_SEQUENCE_N   = 64;
 
-const int START_SCALE     = 2;          // the length of the segment that fits horizontally on the screen = 4
-const int OFFSET_VELOCITY = 30;         // pixels per key press
+const double START_SCALE  = 2;              // the length of the segment that fits horizontally on the screen = 4
+const int OFFSET_VELOCITY = 30;             // pixels per key press
 
 struct Pixel
 {
@@ -27,14 +27,13 @@ struct Pixel
 struct UserScreen
 {
     sf::RenderWindow *window;
-    Vector2i          offset;
+    Vector2d          offset;
     double            scale;
 };
 
-void DrawPixel(Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
-FractalError DrawMandelbrot(const UserScreen *const user_screen);
-
-FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, UserScreen *user_screen);
+FractalError DrawPixel       (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
+FractalError DrawMandelbrot  (const UserScreen *const user_screen);
+FractalError KeyboardHandler (const sf::Event::KeyPressed* key_event, UserScreen *user_screen);
 
 Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 

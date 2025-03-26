@@ -13,8 +13,7 @@ Vector2d MulComplex(Vector2d pixel_1, Vector2d pixel_2)
     float res_x = pixel_1.x * pixel_2.x - pixel_1.y * pixel_2.y;
     float res_y = pixel_1.x * pixel_2.y + pixel_2.x * pixel_1.y;
 
-    Vector2d res_pixel = {res_x, res_y};
-    return res_pixel;
+    return {res_x, res_y};
 }
 
 Vector2d SquareComplex(Vector2d pixel)
@@ -22,6 +21,5 @@ Vector2d SquareComplex(Vector2d pixel)
     float res_x = pixel.x * pixel.x - pixel.y * pixel.y;
     float res_y = 2 * pixel.x * pixel.y;
 
-    Vector2d res_pixel = {res_x, res_y};
-    return res_pixel;
+    return {res_x, res_y};
 }
