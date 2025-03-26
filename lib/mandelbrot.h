@@ -37,6 +37,7 @@ FractalError KeyboardHandler (const sf::Event::KeyPressed* key_event, UserScreen
 
 Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 
+#define DARK_TURQUOISE_COLORING(color_part) (n >= MAX_SEQUENCE_N ? sf::Color::Black : sf::Color {uint8_t(color_part * 2), uint8_t ((color_part * 2) + 26), uint8_t ((color_part * 2) + 32)})
 
 #ifdef GRAPH_DEBUG
 

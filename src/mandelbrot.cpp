@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 #include "mandelbrot.h"
 
@@ -40,9 +41,8 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen)
             Vector2d cur_complex   = {0, 0};
             Vector2d prev_complex  = {0, 0};
             
-            bool limited_sequence = true;
-            
-            for (size_t n = 0; n <= MAX_SEQUENCE_N; n++)
+            size_t n = 0;
+            for ( ; n <= MAX_SEQUENCE_N; n++)
             {
                 cur_complex  = SquareComplex(prev_complex) + const_complex;
                 prev_complex = cur_complex;
@@ -50,20 +50,17 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen)
                 int cur_radius_sq = cur_complex.x * cur_complex.x + cur_complex.y * cur_complex.y;
                 
                 if (cur_radius_sq > BORDER_RADIUS_SQ)
-                {
-                    limited_sequence = false;
                     break;
-                }
             }
             
-            if (limited_sequence)
-            {
-                Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
 
-                Pixel pixel = {(cur_point), sf::Color::Red};
+            uint8_t color_part = (double) n / (double) MAX_SEQUENCE_N * 255;
+            sf::Color pixel_color = DARK_TURQUOISE_COLORING(color_part);
 
-                ERROR_HANDLER(DrawPixel(pixel, user_screen->window));
-            }
+            Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
+            Pixel pixel = {(cur_point), pixel_color};
+
+            ERROR_HANDLER(DrawPixel(pixel, user_screen->window));
         }
     }
 
