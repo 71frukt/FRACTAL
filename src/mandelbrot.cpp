@@ -45,6 +45,9 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen)
                 }
             }
             
+            if (0);
+
+
             if (limited_sequence)
             {
                 Vector2i cur_point = {x, y};
