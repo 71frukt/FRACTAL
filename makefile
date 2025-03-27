@@ -46,7 +46,7 @@ $(BUILD_DIR):
 
 # Очистка
 clean:
-	rm -rf $(BIN_DIR)/* $(BUILD_DIR)/*
+	rm -f $(BIN_DIR)/* $(BUILD_DIR)/*
 
 rebuild: clean all
 

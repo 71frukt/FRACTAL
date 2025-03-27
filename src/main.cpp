@@ -12,6 +12,14 @@ int main(const int argc, const char *argv[])
     env_info.window = &window;
     ERROR_HANDLER(GetEnvironmentInfo(&env_info, argc, argv));
 
+    sf::Font fps_font;
+    if (!fps_font.openFromFile(FPS_FONT_NAME))
+        fprintf(stderr, "Error when opening '%s'\n", FPS_FONT_NAME);
+    sf::Text fps_text(fps_font);
+    fps_text.setCharacterSize(30);
+    fps_text.setFillColor(sf::Color::Green);
+    fps_text.setPosition({50, 50});
+
     while (window.isOpen())
     {
         while (std::optional<sf::Event> event = window.pollEvent()) 
@@ -26,10 +34,8 @@ int main(const int argc, const char *argv[])
         window.clear(sf::Color::Black);
 
         ERROR_HANDLER(DrawMandelbrot(&env_info));
-
+        ERROR_HANDLER(PrintFPS(&env_info, &fps_text));
         window.display();
-
-        printf("Narisoval monda\n");
     }
 
     if (env_info.save_final_settings == true)

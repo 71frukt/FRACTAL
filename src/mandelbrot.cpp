@@ -5,7 +5,7 @@
 
 FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 {
-    ON_GRAPH_DEBUG(if (window == NULL) return {WINDOW_PTR_ERR, {__FILE__, __func__, __LINE__}});
+    if (window == NULL) return FRACTAL_ERROR(WINDOW_PTR_ERR);
 
     sf::VertexArray vert_arr(sf::PrimitiveType::Points, 1);
 
@@ -55,9 +55,7 @@ FractalError DrawMandelbrot(const EnvironmentInfo *const env_info)
                     break;
             }
             
-
-            uint8_t color_part = (double) n / (double) MAX_SEQUENCE_N * 255;
-            sf::Color pixel_color = TricolorColoring(n, max_calc_iterations_num);
+            sf::Color pixel_color = DarkTurquoiseColoring(n, max_calc_iterations_num);
 
             Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
             Pixel pixel = {(cur_point), pixel_color};
@@ -94,7 +92,7 @@ Vector2i GetWindowOffset(const sf::Event::KeyPressed *const key_event)
     }
 }
 
-FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, EnvironmentInfo *env_info)
+FractalError KeyboardHandler(const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
     KEYBOARD_ASSERT(key_event);
@@ -135,16 +133,52 @@ FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, Environment
     return SUCCESS_EXIT;
 }
 
-sf::Color TricolorColoring(size_t iterations_num, size_t max_iterations_num)
+FractalError PrintFPS(EnvironmentInfo *const env_info, sf::Text *fps_text)
+{
+    ENV_INFO_ASSERT(env_info);
+
+    static size_t    frame_count = 0;
+    static sf::Clock fps_clock;
+
+    
+    if (++frame_count >= FPS_RATIO)
+    {
+        float fps = FPS_RATIO / fps_clock.restart().asSeconds();
+        frame_count = 0;
+
+        char fps_buffer[10] = {};
+        sprintf(fps_buffer, "%.2f", fps);
+        
+        fps_text->setString(fps_buffer);
+    }
+
+    env_info->window->draw(*fps_text);
+
+    ENV_INFO_ASSERT(env_info);
+    return SUCCESS_EXIT;
+}
+
+sf::Color TricolorColoring(const size_t iterations_num, const size_t max_iterations_num)
 {
     uint8_t color_part = (double) iterations_num / (double) MAX_SEQUENCE_N * 255;
 
-    if (iterations_num > max_iterations_num)
+    if (iterations_num >= max_iterations_num)
         return sf::Color {255, 255, 255};
 
     else if (iterations_num < max_iterations_num / 10)
-        return sf::Color {color_part * 8, 0, 0};
+        return sf::Color {uint8_t (color_part * 8), 0, 0};
     
     else
-        return sf::Color {0, 0, color_part * 4};
+        return sf::Color {0, 0, uint8_t (color_part * color_part)};
+}
+
+sf::Color DarkTurquoiseColoring(const size_t iterations_num, const size_t max_iterations_num)
+{
+    uint8_t color_part = (double) iterations_num / (double) MAX_SEQUENCE_N * 255;
+
+    if (iterations_num >= max_iterations_num)
+        return sf::Color::Black;
+
+    else
+        return sf::Color {uint8_t(color_part * 2), uint8_t ((color_part * 2) + 26), uint8_t ((color_part * 2) + 32)};
 }

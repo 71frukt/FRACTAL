@@ -15,8 +15,11 @@ using Color    = sf::Color;
 const int BORDER_RADIUS_SQ = 3 * 3;         // the boundary, after crossing which the sequence of pixels in the N-th degree is considered infinitely large
 const int MAX_SEQUENCE_N   = 64;
 
-const double START_SCALE  = 2;              // the length of the segment that fits horizontally on the screen = 4
-const int OFFSET_VELOCITY = 30;             // pixels per key press
+const double START_SCALE   = 2;              // the length of the segment that fits horizontally on the screen = 4
+const int OFFSET_VELOCITY  = 30;             // pixels per key press
+
+const size_t FPS_RATIO = 4;                  // fps = FPS_RATIO / elapsed_time
+const char *const FPS_FONT_NAME = "build/fonts/fps_font.ttf";
 
 struct Pixel
 {
@@ -42,13 +45,16 @@ struct EnvironmentInfo
 
 FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 FractalError DrawMandelbrot     (const EnvironmentInfo *const env_info);
-FractalError KeyboardHandler    (const sf::Event::KeyPressed* key_event, EnvironmentInfo *env_info);
+FractalError KeyboardHandler    (const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info);
 
-Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
+FractalError PrintFPS           (EnvironmentInfo *const env_info, sf::Text *fps_text);
 
-sf::Color TricolorColoring(size_t iterations_num, size_t max_iterations_num);
+Vector2i     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
 
-#define DARK_TURQUOISE_COLORING(color_part) (n >= MAX_SEQUENCE_N ? sf::Color::Black : sf::Color {uint8_t(color_part * 2), uint8_t ((color_part * 2) + 26), uint8_t ((color_part * 2) + 32)})
+
+
+sf::Color TricolorColoring      (const size_t iterations_num, const size_t max_iterations_num);
+sf::Color DarkTurquoiseColoring (const size_t iterations_num, const size_t max_iterations_num);
 
 #ifdef GRAPH_DEBUG
 
