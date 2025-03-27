@@ -40,12 +40,13 @@ struct EnvironmentInfo
     const char       *dest_settings_file;
 };
 
-// FractalError SetWindowSettings  (EnvironmentInfo *const env_info, sf::RenderWindow *window, EnvironmentInfo *const env_settings);
 FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 FractalError DrawMandelbrot     (const EnvironmentInfo *const env_info);
 FractalError KeyboardHandler    (const sf::Event::KeyPressed* key_event, EnvironmentInfo *env_info);
 
 Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
+
+sf::Color TricolorColoring(size_t iterations_num, size_t max_iterations_num);
 
 #define DARK_TURQUOISE_COLORING(color_part) (n >= MAX_SEQUENCE_N ? sf::Color::Black : sf::Color {uint8_t(color_part * 2), uint8_t ((color_part * 2) + 26), uint8_t ((color_part * 2) + 32)})
 

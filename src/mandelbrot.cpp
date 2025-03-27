@@ -57,7 +57,7 @@ FractalError DrawMandelbrot(const EnvironmentInfo *const env_info)
             
 
             uint8_t color_part = (double) n / (double) MAX_SEQUENCE_N * 255;
-            sf::Color pixel_color = DARK_TURQUOISE_COLORING(color_part);
+            sf::Color pixel_color = TricolorColoring(n, max_calc_iterations_num);
 
             Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
             Pixel pixel = {(cur_point), pixel_color};
@@ -99,8 +99,6 @@ FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, Environment
     ENV_INFO_ASSERT(env_info);
     KEYBOARD_ASSERT(key_event);
 
-    printf("offset.x = %f, offset.y = %f\n", env_info->offset.x, env_info->offset.y);
-
     switch (key_event->code) 
     {
         case sf::Keyboard::Key::D:
@@ -135,4 +133,18 @@ FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, Environment
     KEYBOARD_ASSERT(key_event);
 
     return SUCCESS_EXIT;
+}
+
+sf::Color TricolorColoring(size_t iterations_num, size_t max_iterations_num)
+{
+    uint8_t color_part = (double) iterations_num / (double) MAX_SEQUENCE_N * 255;
+
+    if (iterations_num > max_iterations_num)
+        return sf::Color {255, 255, 255};
+
+    else if (iterations_num < max_iterations_num / 10)
+        return sf::Color {color_part * 8, 0, 0};
+    
+    else
+        return sf::Color {0, 0, color_part * 4};
 }

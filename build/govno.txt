@@ -1,5 +1,0 @@
-365.821364 		 // offset.x                   
--263.252587 		 // offset.y                   
-64 		 // max_calc_iterations_num    
-0.001310 		 // scale                      
-3  		 // border_radius_sq           
