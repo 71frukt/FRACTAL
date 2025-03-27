@@ -24,23 +24,14 @@ struct Pixel
     Color    color;
 };
 
-struct UserScreen
-{
-    sf::RenderWindow *window;
-    Vector2d          offset;
-    double            scale;
-};
-
 struct EnvironmentInfo
 {
     sf::RenderWindow *window;
     Vector2d          offset;
     double            scale;
 
-    Vector2d          start_offset;
     size_t            max_calc_iterations_num;
-    double            start_scale;
-    int               border_radius;
+    int               border_radius_sq;
 
     bool              use_custom_settings;
     const char       *source_settings_file;
@@ -49,10 +40,10 @@ struct EnvironmentInfo
     const char       *dest_settings_file;
 };
 
-FractalError SetWindowSettings  (UserScreen *const user_screen, sf::RenderWindow *window, EnvironmentInfo *const env_settings);
+// FractalError SetWindowSettings  (EnvironmentInfo *const env_info, sf::RenderWindow *window, EnvironmentInfo *const env_settings);
 FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
-FractalError DrawMandelbrot     (const UserScreen *const user_screen, const EnvironmentInfo *const env_settings);
-FractalError KeyboardHandler    (const sf::Event::KeyPressed* key_event, UserScreen *user_screen);
+FractalError DrawMandelbrot     (const EnvironmentInfo *const env_info);
+FractalError KeyboardHandler    (const sf::Event::KeyPressed* key_event, EnvironmentInfo *env_info);
 
 Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 
@@ -60,18 +51,24 @@ Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 
 #ifdef GRAPH_DEBUG
 
-#define USER_SCREEN_ASSERT(user_screen)  do                     \
-{                                                                \
-    CodePlace assert_place = {__FILE__, __func__, __LINE__};      \
-                                                                   \
-    if (user_screen == NULL)                                        \
-        return {USER_SCREEN_PTR_ERR, assert_place};                  \
-                                                                      \
-    else if (user_screen->window == NULL)                              \
-        return {WINDOW_PTR_ERR, assert_place};                          \
-                                                                         \
-    else if (user_screen->scale < 0)                                      \
-        return {SCALE_SIGN_ERR, assert_place};                             \
+#define ENV_INFO_ASSERT(env_info)  do                                                \
+{                                                                                     \
+    CodePlace assert_place = {__FILE__, __func__, __LINE__};                           \
+                                                                                        \
+    if (env_info == NULL)                                                                \
+        return {ENV_INFO_PTR_ERR, assert_place};                                          \
+                                                                                           \
+    else if (env_info->window == NULL)                                                      \
+        return {WINDOW_PTR_ERR, assert_place};                                               \
+                                                                                              \
+    else if (env_info->scale < 0)                                                              \
+        return {SCALE_SIGN_ERR, assert_place};                                                  \
+                                                                                                 \
+    else if (env_info->use_custom_settings == true && env_info->source_settings_file == NULL)     \
+        return {SOURCE_SETTINGS_FILE_ERR, assert_place};                                           \
+                                                                                                    \
+    else if (env_info->save_final_settings == true && env_info->dest_settings_file == NULL)          \
+        return {DEST_SETTINGS_FILE_ERR, assert_place};                                                \
 } while (0)
 
 #define KEYBOARD_ASSERT(key_event)  do                          \
@@ -83,7 +80,7 @@ Vector2i GetWindowOffset(const sf::Event::KeyPressed* key_event);
 } while (0)
 
 #else
-#define USER_SCREEN_ASSERT(user_screen)
+#define ENV_INFO_ASSERT(env_info)
 #define KEYBOARD_ASSERT(key_event)
 #endif
 

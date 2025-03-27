@@ -3,17 +3,6 @@
 
 #include "mandelbrot.h"
 
-
-FractalError SetWindowSettings(UserScreen *const user_screen, sf::RenderWindow *window, EnvironmentInfo *const env_settings)
-{
-    user_screen->window = window;
-    user_screen->offset = env_settings->start_offset;
-    user_screen->scale  = env_settings->start_scale;
-
-    USER_SCREEN_ASSERT(user_screen);
-    return SUCCESS_EXIT;
-}
-
 FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 {
     ON_GRAPH_DEBUG(if (window == NULL) return {WINDOW_PTR_ERR, {__FILE__, __func__, __LINE__}});
@@ -28,14 +17,14 @@ FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pix
     return SUCCESS_EXIT;
 }
 
-
-FractalError DrawMandelbrot(const UserScreen *const user_screen, const EnvironmentInfo *const env_settings)
+FractalError DrawMandelbrot(const EnvironmentInfo *const env_info)
 {
-    USER_SCREEN_ASSERT(user_screen);
+    ENV_INFO_ASSERT(env_info);
 
-    const size_t max_calc_iterations_num = env_settings->max_calc_iterations_num;
+    const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
+    const int    border_radius_sq = env_info->border_radius_sq;
 
-    Vector2i window_size = {(int)user_screen->window->getSize().x , (int)user_screen->window->getSize().y};
+    Vector2i window_size = {(int)env_info->window->getSize().x , (int)env_info->window->getSize().y};
 
     static double inverse_window_size_x = 1 / (double)window_size.x;  // с помощью TYPICAL_WINDOW_SIZE сдвигаем разряд для большей точности
     // static double inverse_window_size_y = 1 / (double)window_size.y; // useless
@@ -43,14 +32,14 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen, const Environme
     Vector2i lu_window_corner = {-window_size.x / 2 , -window_size.y / 2};              // ox directed to left, oy - down
     Vector2i rd_window_corner = { window_size.x / 2 ,  window_size.y / 2};
     
-    Vector2d offset_on_complex_plane = {user_screen->offset.x / (double)window_size.x, user_screen->offset.y / (double)window_size.y}; 
+    Vector2d offset_on_complex_plane = {env_info->offset.x / (double)window_size.x, env_info->offset.y / (double)window_size.y}; 
 
     for (int y = lu_window_corner.y; y <= rd_window_corner.y; y++)
     {
         for (int x = lu_window_corner.x; x <= rd_window_corner.x; x++)
         {
-            Vector2d const_complex = {(double)(x * user_screen->scale * inverse_window_size_x) + offset_on_complex_plane.x ,
-                                      (double)(y * user_screen->scale * inverse_window_size_x) + offset_on_complex_plane.y};
+            Vector2d const_complex = {(double)(x * env_info->scale * inverse_window_size_x) + offset_on_complex_plane.x ,
+                                      (double)(y * env_info->scale * inverse_window_size_x) + offset_on_complex_plane.y};
             Vector2d cur_complex   = {0, 0};
             Vector2d prev_complex  = {0, 0};
             
@@ -62,7 +51,7 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen, const Environme
                 
                 int cur_radius_sq = cur_complex.x * cur_complex.x + cur_complex.y * cur_complex.y;
                 
-                if (cur_radius_sq > BORDER_RADIUS_SQ)
+                if (cur_radius_sq > border_radius_sq)
                     break;
             }
             
@@ -73,11 +62,11 @@ FractalError DrawMandelbrot(const UserScreen *const user_screen, const Environme
             Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
             Pixel pixel = {(cur_point), pixel_color};
 
-            ERROR_HANDLER(DrawPixel(pixel, user_screen->window));
+            ERROR_HANDLER(DrawPixel(pixel, env_info->window));
         }
     }
 
-    USER_SCREEN_ASSERT(user_screen);
+    ENV_INFO_ASSERT(env_info);
 
     return SUCCESS_EXIT;
 }
@@ -105,44 +94,44 @@ Vector2i GetWindowOffset(const sf::Event::KeyPressed *const key_event)
     }
 }
 
-FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, UserScreen *user_screen)
+FractalError KeyboardHandler(const sf::Event::KeyPressed* key_event, EnvironmentInfo *env_info)
 {
-    USER_SCREEN_ASSERT(user_screen);
+    ENV_INFO_ASSERT(env_info);
     KEYBOARD_ASSERT(key_event);
 
-    printf("offset.x = %f, offset.y = %f\n", user_screen->offset.x, user_screen->offset.y);
+    printf("offset.x = %f, offset.y = %f\n", env_info->offset.x, env_info->offset.y);
 
     switch (key_event->code) 
     {
         case sf::Keyboard::Key::D:
-            user_screen->offset.x += OFFSET_VELOCITY / START_SCALE * user_screen->scale;
+            env_info->offset.x += OFFSET_VELOCITY / START_SCALE * env_info->scale;
             break;
 
         case sf::Keyboard::Key::A:
-            user_screen->offset.x -= OFFSET_VELOCITY / START_SCALE * user_screen->scale;
+            env_info->offset.x -= OFFSET_VELOCITY / START_SCALE * env_info->scale;
             break;
 
         case sf::Keyboard::Key::W:
-            user_screen->offset.y -= OFFSET_VELOCITY / START_SCALE * user_screen->scale;
+            env_info->offset.y -= OFFSET_VELOCITY / START_SCALE * env_info->scale;
             break;
 
         case sf::Keyboard::Key::S:
-            user_screen->offset.y += OFFSET_VELOCITY / START_SCALE * user_screen->scale;
+            env_info->offset.y += OFFSET_VELOCITY / START_SCALE * env_info->scale;
             break;
 
         case sf::Keyboard::Key::Add:
-            user_screen->scale *= 0.9;
+            env_info->scale *= 0.9;
             break;
 
         case sf::Keyboard::Key::Subtract:
-            user_screen->scale *= 1.1;
+            env_info->scale *= 1.1;
             break;
 
         default:
             break;
     }
 
-    USER_SCREEN_ASSERT(user_screen);
+    ENV_INFO_ASSERT(env_info);
     KEYBOARD_ASSERT(key_event);
 
     return SUCCESS_EXIT;

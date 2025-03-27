@@ -3,7 +3,8 @@
 
 #include "mandelbrot.h"
 
-EnvironmentInfo GetEnvironmentInfo(const int argc, const char *argv[]);
+FractalError GetEnvironmentInfo (EnvironmentInfo *env_info, const int argc, const char *argv[]);
+FractalError SaveFinalSettings  (EnvironmentInfo *env_info);
 
 const char *const CUSTOM_SETTINGS_FLAG     = "--use_custom_settings";
 const char *const SAVE_FINAL_SETTINGS_FLAG = "--save_final_settings";

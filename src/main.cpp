@@ -6,12 +6,11 @@
 #include "flag_work.h"
 
 int main(const int argc, const char *argv[])
-{
-    EnvironmentInfo env_settings = GetEnvironmentInfo(argc, argv);
-    
+{            
     sf::RenderWindow window(sf::VideoMode({800, 800}), "sosal?");
-    UserScreen user_screen = {};
-    SetWindowSettings(&user_screen, &window, &env_settings);
+    EnvironmentInfo env_info = {};
+    env_info.window = &window;
+    ERROR_HANDLER(GetEnvironmentInfo(&env_info, argc, argv));
 
     while (window.isOpen())
     {
@@ -21,17 +20,20 @@ int main(const int argc, const char *argv[])
                 window.close();
 
             if (const sf::Event::KeyPressed *key_event = event->getIf<sf::Event::KeyPressed>())
-                KeyboardHandler(key_event, &user_screen);
+                KeyboardHandler(key_event, &env_info);
         }
 
         window.clear(sf::Color::Black);
 
-        ERROR_HANDLER(DrawMandelbrot(&user_screen, &env_settings));
+        ERROR_HANDLER(DrawMandelbrot(&env_info));
 
         window.display();
 
         printf("Narisoval monda\n");
     }
+
+    if (env_info.save_final_settings == true)
+        ERROR_HANDLER(SaveFinalSettings(&env_info));
 
     return 0;
 }

@@ -5,21 +5,25 @@
 
 enum FractalExitCode
 {
-    USER_SCREEN_PTR_ERR,
+    ENV_INFO_PTR_ERR,
     WINDOW_PTR_ERR,
     SCALE_SIGN_ERR,
     KEY_EVENT_ERR,
-    FRACTAL_OK
+    FRACTAL_OK,
+    SOURCE_SETTINGS_FILE_ERR,
+    DEST_SETTINGS_FILE_ERR
 };
 
-#define FRACTAL_EXIT_CODE_TO_STR(code)                                          \
-(                                                                                \
-    code == USER_SCREEN_PTR_ERR ? "user_screen ptr = NULL"                   :    \
-    code == WINDOW_PTR_ERR      ? "window ptr = NULL"                        :     \
-    code == SCALE_SIGN_ERR      ? "scale < 0"                                :      \
-    code == KEY_EVENT_ERR       ? "key_event ptr = NULL"                     :       \
-    code == FRACTAL_OK          ? "no error (why did the error occur then?)" :        \
-    "UNKNOWN_ERROR"                                                                    \
+#define FRACTAL_EXIT_CODE_TO_STR(code)                                                              \
+(                                                                                                    \
+    code == ENV_INFO_PTR_ERR         ? "env_info ptr = NULL"                                  :    \
+    code == WINDOW_PTR_ERR           ? "window ptr = NULL"                                       :     \
+    code == SCALE_SIGN_ERR           ? "scale < 0"                                               :      \
+    code == KEY_EVENT_ERR            ? "key_event ptr = NULL"                                    :       \
+    code == FRACTAL_OK               ? "no error (why did the error occur then?)"                :        \
+    code == SOURCE_SETTINGS_FILE_ERR ? "source settings file ptr = NULL whilst it's flag stands" :         \
+    code == DEST_SETTINGS_FILE_ERR   ? "dest settings file ptr = NULL whilst it's flag stands"   :          \
+    "UNKNOWN_ERROR"                                                                                          \
 )
 
 struct CodePlace
