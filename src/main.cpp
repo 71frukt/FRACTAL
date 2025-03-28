@@ -7,8 +7,10 @@
 
 int main(const int argc, const char *argv[])
 {            
-    sf::RenderWindow window(sf::VideoMode({800, 800}), "sosal?");
     EnvironmentInfo env_info = {};
+    GetEnvironmentInfo(&env_info, argc, argv);
+
+    sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "sosal?");
     env_info.window = &window;
     
     sf::Font env_info_font;
@@ -19,9 +21,6 @@ int main(const int argc, const char *argv[])
     env_info_text.setFillColor(sf::Color::Green);
     env_info_text.setPosition({50, 50});
     env_info.screen_text = &env_info_text;
-
-
-    ERROR_HANDLER(GetEnvironmentInfo(&env_info, argc, argv));
 
     while (window.isOpen())
     {
@@ -36,7 +35,7 @@ int main(const int argc, const char *argv[])
 
         window.clear(sf::Color::Black);
 
-        ERROR_HANDLER(DrawMandelbrot1(&env_info));
+        ERROR_HANDLER(DrawMandelbrot2(&env_info));
         ERROR_HANDLER(PrintScreenText(&env_info));
         window.display();
     }

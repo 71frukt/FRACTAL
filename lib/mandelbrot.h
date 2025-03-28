@@ -12,10 +12,13 @@ using Vector2f = sf::Vector2f;
 using Vector2d = sf::Vector2<double>;
 using Color    = sf::Color;
 
-const int BORDER_RADIUS_SQ = 3 * 3;         // the boundary, after crossing which the sequence of pixels in the N-th degree is considered infinitely large
-const int MAX_SEQUENCE_N   = 64;
+const unsigned int DEFAULT_WINDOW_WIDTH = 800;
+const unsigned int DEFAULT_WINDOW_HEIGH = 800;
 
-const double START_SCALE   = 2;              // the length of the segment that fits horizontally on the screen = 4
+const int BORDER_RADIUS_SQ   = 3 * 3;        // the boundary, after crossing which the sequence of pixels in the N-th degree is considered infinitely large
+const int MAX_SEQUENCE_N     = 64;
+
+const double START_SCALE     = 2;            // the length of the segment that fits horizontally on the screen = 4
 const double OFFSET_VELOCITY = 0.1;          // on complex plane
 
 const size_t FPS_RATIO = 4;                  // env_info = FPS_RATIO / elapsed_time
@@ -32,13 +35,16 @@ struct Pixel
 struct EnvironmentInfo
 {
     sf::RenderWindow *window;
+    unsigned int      window_width;
+    unsigned int      window_heigh;
+
     sf::Text         *screen_text;
 
     Vector2d          offset;   // in pixels
     double            scale;
 
     size_t            max_calc_iterations_num;
-    int               border_radius_sq;
+    double            border_radius_sq;
 
     bool              use_custom_settings;
     const char       *source_settings_file;
@@ -47,10 +53,11 @@ struct EnvironmentInfo
     const char       *dest_settings_file;
 };
 
-FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);      // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
+void DrawPixel                  (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
 
 FractalError DrawMandelbrot0    (const EnvironmentInfo *const env_info);            // the first version
 FractalError DrawMandelbrot1    (const EnvironmentInfo *const env_info);            // cycles of 4
+FractalError DrawMandelbrot2    (const EnvironmentInfo *const env_info);
 
 FractalError KeyboardHandler    (const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info);
 

@@ -1,7 +1,7 @@
 #ifndef FRACTAL_DEBUG_H
 #define FRACTAL_DEBUG_H
 
-#define GRAPH_DEBUG
+// #define GRAPH_DEBUG
 
 enum FractalExitCode
 {

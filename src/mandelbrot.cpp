@@ -1,20 +1,19 @@
 #include <stdio.h>
 #include <math.h>
+#include <immintrin.h>
 
 #include "mandelbrot.h"
 
-FractalError DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
-{
-    if (window == NULL) return FRACTAL_ERROR(WINDOW_PTR_ERR);
 
+void DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
+{
+    assert(window);
     sf::VertexArray vert_arr(sf::PrimitiveType::Points, 1);
 
     vert_arr[0].position = sf::Vector2f(pixel.coord.x, pixel.coord.y);
     vert_arr[0].color    = pixel.color;
 
     window->draw(vert_arr);
-
-    return SUCCESS_EXIT;
 }
 
 FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
@@ -24,7 +23,7 @@ FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
     const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
     const int    border_radius_sq        = env_info->border_radius_sq;
 
-    Vector2i window_size = {(int)env_info->window->getSize().x , (int)env_info->window->getSize().y};
+    Vector2i window_size = {(int)env_info->window_width , (int)env_info->window_heigh};
 
     static double inverse_window_size_x = 1 / (double)window_size.x;  // с помощью TYPICAL_WINDOW_SIZE сдвигаем разряд для большей точности
     // static double inverse_window_size_y = 1 / (double)window_size.y; // useless
@@ -54,13 +53,13 @@ FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
                 if (cur_radius_sq > border_radius_sq)
                     break;
             }
-            
+
             sf::Color pixel_color = DarkTurquoiseColoring(n, max_calc_iterations_num);
 
             Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
             Pixel pixel = {(cur_point), pixel_color};
 
-            ERROR_HANDLER(DrawPixel(pixel, env_info->window));
+            DrawPixel(pixel, env_info->window);
         }
     }
 
@@ -75,8 +74,8 @@ FractalError DrawMandelbrot1(const EnvironmentInfo *const env_info)
     const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
     const int    border_radius_sq        = env_info->border_radius_sq;
     
-    const size_t window_width = (size_t)env_info->window->getSize().x;
-    const size_t window_heigh = (size_t)env_info->window->getSize().y;
+    const size_t window_width = (size_t)env_info->window_width;
+    const size_t window_heigh = (size_t)env_info->window_heigh;
 
     const double dx = env_info->scale / window_width;
     const double dy = env_info->scale / window_heigh;
@@ -105,18 +104,18 @@ FractalError DrawMandelbrot1(const EnvironmentInfo *const env_info)
                 double XX[4] = {}; 
                 double YY[4] = {}; 
                 double XY[4] = {}; 
-                double radius_sq_pckd[4] = {}; 
+                double R2[4] = {}; 
                 
                 for (size_t i = 0; i < 4; i++)  XX[i] = X[i] * X[i];
                 for (size_t i = 0; i < 4; i++)  YY[i] = Y[i] * Y[i];
                 for (size_t i = 0; i < 4; i++)  XY[i] = X[i] * Y[i];
                 
-                for (size_t i = 0; i < 4; i++)  radius_sq_pckd[i] = XX[i] + YY[i];                            // расстояние до этой точки в квадрате
+                for (size_t i = 0; i < 4; i++)  R2[i] = XX[i] + YY[i];                            // расстояние до этой точки в квадрате
                 
                 int cmp_pckd[4] = {};
                 for (size_t i = 0; i < 4; i++) 
                 {
-                    if (radius_sq_pckd[i] <= border_radius_sq)
+                    if (R2[i] <= border_radius_sq)
                     {
                         cmp_pckd[i] = 1;
                     }
@@ -140,8 +139,87 @@ FractalError DrawMandelbrot1(const EnvironmentInfo *const env_info)
                     Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
                     Pixel pixel = {cur_point, pixel_color};
     
-                    ERROR_HANDLER(DrawPixel(pixel, env_info->window));
+                    DrawPixel(pixel, env_info->window);
                 }
+            }
+        }    
+    }
+
+    ENV_INFO_ASSERT(env_info);
+    return SUCCESS_EXIT;
+}
+
+
+FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
+{
+    ENV_INFO_ASSERT(env_info);
+
+    __m256d TEST_R2 = _mm256_set1_pd(env_info->border_radius_sq);
+    __m256d ONES = _mm256_set1_pd(1.0);
+
+    const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
+    __m256d TEST_IT_NUM = _mm256_set1_pd(max_calc_iterations_num);
+    
+    const size_t window_width = (size_t)env_info->window_width;
+    const size_t window_heigh = (size_t)env_info->window_heigh;
+
+    const double dx = env_info->scale / window_width;
+    const double dy = dx;
+
+    double left_corner_x = -env_info->scale / 2 + env_info->offset.x;
+    double x0 = left_corner_x;
+    double y0 = -env_info->scale / 2 + env_info->offset.y;
+    
+    for (size_t pixel_num_y = 0; pixel_num_y < window_heigh; pixel_num_y++, y0 += dy)
+    {
+        x0 = left_corner_x;
+        
+        for (size_t pixel_num_x = 0; pixel_num_x < window_width; pixel_num_x += 4, x0 += dx * 4)
+        {
+            __m256d Y0 = _mm256_set1_pd(y0);
+            __m256d Y  = _mm256_set1_pd(y0);
+
+            __m256d X0 = _mm256_set_pd(x0 + 3 * dx, x0 + 2 * dx, x0 + dx, x0);
+            __m256d X  = _mm256_set_pd(x0 + 3 * dx, x0 + 2 * dx, x0 + dx, x0);
+
+            __m256d iteration_num_pd = _mm256_set1_pd(0);
+
+            for (size_t iteration_num = 0; iteration_num < max_calc_iterations_num; iteration_num++)
+            {   
+                
+                __m256d XX = _mm256_mul_pd(X, X); 
+                __m256d YY = _mm256_mul_pd(Y, Y); 
+                __m256d XY = _mm256_mul_pd(X, Y);
+
+                __m256d R2 = _mm256_add_pd(XX, YY);     // расстояние до этой точки в квадрате
+
+                __m256d r_cmp_pd = _mm256_cmp_pd(R2, TEST_R2, _CMP_LE_OQ);
+                int r_mask_bits  = _mm256_movemask_pd(r_cmp_pd);      // if r2 <= test_r2
+                
+                r_cmp_pd = _mm256_and_pd(r_cmp_pd, ONES);
+                
+                if (!r_mask_bits) break;
+
+                iteration_num_pd = _mm256_add_pd(iteration_num_pd, r_cmp_pd);
+                X = _mm256_add_pd(_mm256_sub_pd(XX, YY), X0);
+                Y = _mm256_add_pd(_mm256_add_pd(XY, XY), Y0);
+            }
+            
+            __m256d it_cmp_pd = _mm256_cmp_pd(iteration_num_pd, TEST_IT_NUM, _CMP_LT_OQ);
+            int it_mask_bits  = _mm256_movemask_pd(it_cmp_pd);
+            for (size_t i = 0; i < 4; i++)
+            {
+                if ((it_mask_bits && 1))
+                {
+                    sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pd[i], max_calc_iterations_num); // sf::Color::White;
+    
+                    Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
+                    Pixel pixel = {cur_point, pixel_color};
+    
+                    DrawPixel(pixel, env_info->window);
+                }
+
+                it_mask_bits = it_mask_bits << 8;
             }
         }    
     }

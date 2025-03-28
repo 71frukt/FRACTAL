@@ -1,6 +1,6 @@
 # Компилятор и флаги
 CC        =  g++
-OPT_FLAG  = -O3
+OPT_FLAG  = -mavx -O3
 CFLAGS    = -Wall -Wextra -std=c++17 -Ilib
 SFMLFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
