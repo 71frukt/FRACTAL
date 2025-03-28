@@ -68,7 +68,7 @@ struct FractalError
 #else
 typedef void FractalError;
 #define ON_GRAPH_DEBUG(...)
-#define FRACTAL_ERROR(code, assert_place)
+#define FRACTAL_ERROR(code)
 #define SUCCESS_EXIT
 #define ERROR_HANDLER(func_returning_frac_error)  func_returning_frac_error
 #endif

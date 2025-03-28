@@ -10,15 +10,18 @@ int main(const int argc, const char *argv[])
     sf::RenderWindow window(sf::VideoMode({800, 800}), "sosal?");
     EnvironmentInfo env_info = {};
     env_info.window = &window;
-    ERROR_HANDLER(GetEnvironmentInfo(&env_info, argc, argv));
-
-    sf::Font fps_font;
-    if (!fps_font.openFromFile(FPS_FONT_NAME))
+    
+    sf::Font env_info_font;
+    if (!env_info_font.openFromFile(FPS_FONT_NAME))
         fprintf(stderr, "Error when opening '%s'\n", FPS_FONT_NAME);
-    sf::Text fps_text(fps_font);
-    fps_text.setCharacterSize(30);
-    fps_text.setFillColor(sf::Color::Green);
-    fps_text.setPosition({50, 50});
+    sf::Text env_info_text(env_info_font);
+    env_info_text.setCharacterSize(30);
+    env_info_text.setFillColor(sf::Color::Green);
+    env_info_text.setPosition({50, 50});
+    env_info.screen_text = &env_info_text;
+
+
+    ERROR_HANDLER(GetEnvironmentInfo(&env_info, argc, argv));
 
     while (window.isOpen())
     {
@@ -33,8 +36,8 @@ int main(const int argc, const char *argv[])
 
         window.clear(sf::Color::Black);
 
-        ERROR_HANDLER(DrawMandelbrot(&env_info));
-        ERROR_HANDLER(PrintFPS(&env_info, &fps_text));
+        ERROR_HANDLER(DrawMandelbrot1(&env_info));
+        ERROR_HANDLER(PrintScreenText(&env_info));
         window.display();
     }
 

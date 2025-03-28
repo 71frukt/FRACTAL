@@ -16,10 +16,12 @@ const int BORDER_RADIUS_SQ = 3 * 3;         // the boundary, after crossing whic
 const int MAX_SEQUENCE_N   = 64;
 
 const double START_SCALE   = 2;              // the length of the segment that fits horizontally on the screen = 4
-const int OFFSET_VELOCITY  = 30;             // pixels per key press
+const double OFFSET_VELOCITY = 0.1;          // on complex plane
 
-const size_t FPS_RATIO = 4;                  // fps = FPS_RATIO / elapsed_time
+const size_t FPS_RATIO = 4;                  // env_info = FPS_RATIO / elapsed_time
 const char *const FPS_FONT_NAME = "build/fonts/fps_font.ttf";
+
+const size_t ENV_INFO_BUFFER_LEN = 30;
 
 struct Pixel
 {
@@ -30,7 +32,9 @@ struct Pixel
 struct EnvironmentInfo
 {
     sf::RenderWindow *window;
-    Vector2d          offset;
+    sf::Text         *screen_text;
+
+    Vector2d          offset;   // in pixels
     double            scale;
 
     size_t            max_calc_iterations_num;
@@ -43,13 +47,16 @@ struct EnvironmentInfo
     const char       *dest_settings_file;
 };
 
-FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
-FractalError DrawMandelbrot     (const EnvironmentInfo *const env_info);
+FractalError DrawPixel          (Pixel pixel, sf::RenderWindow *const window);      // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
+
+FractalError DrawMandelbrot0    (const EnvironmentInfo *const env_info);            // the first version
+FractalError DrawMandelbrot1    (const EnvironmentInfo *const env_info);            // cycles of 4
+
 FractalError KeyboardHandler    (const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info);
 
-FractalError PrintFPS           (EnvironmentInfo *const env_info, sf::Text *fps_text);
+FractalError PrintScreenText    (EnvironmentInfo *const env_info);                  // FPS, scale and mb other info
 
-Vector2i     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
+Vector2d     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
 
 
 

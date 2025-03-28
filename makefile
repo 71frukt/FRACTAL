@@ -1,6 +1,7 @@
 # Компилятор и флаги
-CC       = g++
-CFLAGS   = -Wall -Wextra -std=c++17 -Ilib
+CC        =  g++
+OPT_FLAG  = -O3
+CFLAGS    = -Wall -Wextra -std=c++17 -Ilib
 SFMLFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 # Дополнительные флаги линковки
@@ -35,7 +36,7 @@ $(TARGET): $(OBJ_CPP) | $(BUILD_DIR)
 
 # Компиляция .cpp в .o
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(OPT_FLAG) $(CFLAGS) -c $< -o $@
 
 # Создание папок при необходимости
 $(BIN_DIR):
@@ -46,7 +47,7 @@ $(BUILD_DIR):
 
 # Очистка
 clean:
-	rm -f $(BIN_DIR)/* $(BUILD_DIR)/*
+	rm -f $(BIN_DIR)/*
 
 rebuild: clean all
 
