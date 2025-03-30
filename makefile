@@ -25,7 +25,7 @@ BUILD_DIR = build
 # Исходные файлы и цели
 SRC_CPP  = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_CPP  = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.o,$(SRC_CPP))
-TARGET   = $(BUILD_DIR)/prog
+TARGET   = $(BUILD_DIR)/manda
 
 # Основная цель
 all: $(TARGET)

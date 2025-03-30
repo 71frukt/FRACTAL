@@ -154,9 +154,7 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
-    // sf::VertexArray *vertex_array = env_info->vertex_array;
-    sf::VertexArray vertex_array(sf::PrimitiveType::Points, env_info->window_width * env_info->window_heigh);
-
+    sf::VertexArray vertex_array = env_info->vertex_array;
 
     __m256d TEST_R2 = _mm256_set1_pd(env_info->border_radius_sq);
     __m256d ONES = _mm256_set1_pd(1.0);
@@ -217,13 +215,10 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
                 {
                     sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pd[i], max_calc_iterations_num); // sf::Color::White;
     
-                    vertex_array[(pixel_num_x + i) + pixel_num_y * window_width].position = Vector2f(pixel_num_x + i, pixel_num_y);
-                    vertex_array[(pixel_num_x + i) + pixel_num_y * window_width].color    = pixel_color;
+                    size_t num_in_vertex_array = (pixel_num_x + i) + pixel_num_y * window_width;
 
-                    // Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
-                    // Pixel pixel = {cur_point, pixel_color};
-    
-                    // DrawPixel(pixel, env_info->window);
+                    vertex_array[num_in_vertex_array].position = Vector2f(pixel_num_x + i, pixel_num_y);
+                    vertex_array[num_in_vertex_array].color    = pixel_color;
                 }
 
                 it_mask_bits >>= 1;
@@ -231,8 +226,7 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
         }    
     }
 
-    env_info->window->draw(vertex_array); // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
-
+    env_info->window->draw(vertex_array);       // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
 
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
@@ -269,20 +263,19 @@ FractalError KeyboardHandler(const sf::Event::KeyPressed *const key_event, Envir
     switch (key_event->code) 
     {
         case sf::Keyboard::Key::D:
-            env_info->offset.x += OFFSET_VELOCITY / START_SCALE * env_info->scale;
-            fprintf(stderr, "offset.x = %f\n", env_info->offset.x);
+            env_info->offset.x += OFFSET_VELOCITY * env_info->scale;
             break;
 
         case sf::Keyboard::Key::A:
-            env_info->offset.x -= OFFSET_VELOCITY / START_SCALE * env_info->scale;
+            env_info->offset.x -= OFFSET_VELOCITY * env_info->scale;
             break;
 
         case sf::Keyboard::Key::W:
-            env_info->offset.y -= OFFSET_VELOCITY / START_SCALE * env_info->scale;
+            env_info->offset.y -= OFFSET_VELOCITY * env_info->scale;
             break;
 
         case sf::Keyboard::Key::S:
-            env_info->offset.y += OFFSET_VELOCITY / START_SCALE * env_info->scale;
+            env_info->offset.y += OFFSET_VELOCITY * env_info->scale;
             break;
 
         case sf::Keyboard::Key::Add:
@@ -303,29 +296,96 @@ FractalError KeyboardHandler(const sf::Event::KeyPressed *const key_event, Envir
     return SUCCESS_EXIT;
 }
 
+
+FractalError MovementHandler(EnvironmentInfo *const env_info)
+{
+    ENV_INFO_ASSERT(env_info);
+
+    static double accelerate_coeff = 1;
+    static bool   is_movement;
+    is_movement = false;
+
+    double movement_coeff = accelerate_coeff * env_info->scale / env_info->cur_fps;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+    {
+        env_info->offset.y -= OFFSET_VELOCITY * movement_coeff;
+        is_movement = true;
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+    {
+        env_info->offset.x -= OFFSET_VELOCITY * movement_coeff;
+        is_movement = true;
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+    {
+        env_info->offset.y += OFFSET_VELOCITY * movement_coeff;
+        is_movement = true;
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+    {
+        env_info->offset.x += OFFSET_VELOCITY * movement_coeff;
+        is_movement = true;
+    }
+    
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Add))
+    {
+        env_info->scale *= 1 - SCALE_VELOCITY * accelerate_coeff / env_info->cur_fps;
+        is_movement = true;
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Subtract))
+    {
+        env_info->scale *= 1 + SCALE_VELOCITY * accelerate_coeff / env_info->cur_fps;
+        is_movement = true;
+    }
+
+    if (is_movement == false)
+        accelerate_coeff = 1;
+    else
+        accelerate_coeff += 1 / env_info->cur_fps;
+
+    ENV_INFO_ASSERT(env_info);
+    return SUCCESS_EXIT;
+}
+
+
+FractalError CalculateFps(EnvironmentInfo *const env_info)
+{
+    ENV_INFO_ASSERT(env_info);
+    
+    static size_t    frame_count = 0;
+    static sf::Clock env_info_clock;
+
+    if (++frame_count >= FPS_RATIO)
+    {
+        env_info->cur_fps = FPS_RATIO / env_info_clock.restart().asSeconds();
+        frame_count = 0;
+    }    
+
+    ENV_INFO_ASSERT(env_info);
+    return SUCCESS_EXIT;
+}
+
+
 FractalError PrintScreenText(EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
-    static size_t    frame_count = 0;
-    static sf::Clock env_info_clock;
-    static float     fps = 0;
-
     char env_info_buffer[ENV_INFO_BUFFER_LEN] = {};
-
-    if (++frame_count >= FPS_RATIO)
-    {
-        fps = FPS_RATIO / env_info_clock.restart().asSeconds();
-        frame_count = 0;
-    }
 
     double scale = env_info->scale;
 
+    ERROR_HANDLER(CalculateFps(env_info));
+
     if (scale > 1)
-        snprintf(env_info_buffer, ENV_INFO_BUFFER_LEN, "%.2f\nscale = %lu : 1", fps, (size_t) scale);
+        snprintf(env_info_buffer, ENV_INFO_BUFFER_LEN, "%.2f\nscale = %lu : 1", env_info->cur_fps, (size_t) scale);
     
     else
-        snprintf(env_info_buffer, ENV_INFO_BUFFER_LEN, "%.2f\nscale = 1 : %lu", fps, (size_t) (1 / scale));
+        snprintf(env_info_buffer, ENV_INFO_BUFFER_LEN, "%.2f\nscale = 1 : %lu", env_info->cur_fps, (size_t) (1 / scale));
 
     env_info->screen_text->setString(env_info_buffer);
     env_info->window->draw(*env_info->screen_text);

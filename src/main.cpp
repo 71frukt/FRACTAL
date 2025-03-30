@@ -13,14 +13,8 @@ int main(const int argc, const char *argv[])
     sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "sosal?");
     env_info.window = &window;
 
-    sf::VertexArray vertex_array(sf::PrimitiveType::LineStrip, env_info.window_width * env_info.window_heigh);
-    env_info.vertex_array = &vertex_array;
-
-    // TestSfmlWindowRenderTime(&window, 100);
-
-    // return 0;
-
-
+    sf::VertexArray vertex_array(sf::PrimitiveType::Points, env_info.window_width * env_info.window_heigh);
+    env_info.vertex_array = vertex_array;
 
     sf::Font env_info_font;
     if (!env_info_font.openFromFile(FPS_FONT_NAME))
@@ -31,6 +25,7 @@ int main(const int argc, const char *argv[])
     env_info_text.setPosition({50, 50});
     env_info.screen_text = &env_info_text;
 
+
     while (window.isOpen())
     // for (int i = 0; i < 10; i++)
     {
@@ -38,15 +33,14 @@ int main(const int argc, const char *argv[])
         {
             if (event->is<sf::Event::Closed>()) 
                 window.close();
-
-            if (const sf::Event::KeyPressed *key_event = event->getIf<sf::Event::KeyPressed>())
-                KeyboardHandler(key_event, &env_info);
         }
 
         window.clear(sf::Color::Black);
 
+        ERROR_HANDLER(MovementHandler(&env_info));
+
         ERROR_HANDLER(DrawMandelbrot2(&env_info));
-        ERROR_HANDLER(PrintScreenText(&env_info));
+        ERROR_HANDLER(PrintScreenText(&env_info));      // calculate and print fps and print scale
         window.display();
     }
 

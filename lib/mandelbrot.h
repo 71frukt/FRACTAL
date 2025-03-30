@@ -19,9 +19,13 @@ const int BORDER_RADIUS_SQ   = 3 * 3;        // the boundary, after crossing whi
 const int MAX_SEQUENCE_N     = 64;
 
 const double START_SCALE     = 2;            // the length of the segment that fits horizontally on the screen = 4
-const double OFFSET_VELOCITY = 0.1;          // on complex plane
+const double SCALE_VELOCITY  = 0.2;          // scale(t0 + 1 second) = scale(t0) * (1 - SCALE_VELOCITY)  --  if pressed "+"
 
-const size_t FPS_RATIO = 4;                  // env_info = FPS_RATIO / elapsed_time
+const double OFFSET_VELOCITY = 0.1;          // units per second on complex plane when scale = 1
+
+const double ACCELERATE_COEFF_SPEED = 1;     // every second of continuous movement its speed increases by 100%
+
+const size_t FPS_RATIO = 5;                 // env_info = FPS_RATIO / elapsed_time
 const char *const FPS_FONT_NAME = "build/fonts/fps_font.ttf";
 
 const size_t ENV_INFO_BUFFER_LEN = 30;
@@ -38,9 +42,10 @@ struct EnvironmentInfo
     unsigned int      window_width;
     unsigned int      window_heigh;
 
-    sf::VertexArray  *vertex_array;
+    sf::VertexArray   vertex_array;     // array of screen pixels
 
     sf::Text         *screen_text;
+    float             cur_fps;
 
     Vector2d          offset;   // in pixels
     double            scale;
@@ -62,12 +67,13 @@ FractalError DrawMandelbrot1    (const EnvironmentInfo *const env_info);        
 FractalError DrawMandelbrot2    (const EnvironmentInfo *const env_info);
 
 FractalError KeyboardHandler    (const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info);
+FractalError MovementHandler    (EnvironmentInfo *const env_info);
 
+FractalError CalculateFps       (EnvironmentInfo *const env_info);
 FractalError PrintScreenText    (EnvironmentInfo *const env_info);                  // FPS, scale and mb other info
 
 Vector2d     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
 
-void    FillScreenWithPixels    (const EnvironmentInfo *const env_info);
 
 sf::Color TricolorColoring      (const size_t iterations_num, const size_t max_iterations_num);
 sf::Color DarkTurquoiseColoring (const size_t iterations_num, const size_t max_iterations_num);
