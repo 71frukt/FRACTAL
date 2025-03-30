@@ -1,11 +1,11 @@
 # Компилятор и флаги
 CC        =  g++
-OPT_FLAG  = -mavx -O3
+OPT_FLAG  = -mavx2 -pg -g -O3
 CFLAGS    = -Wall -Wextra -std=c++17 -Ilib
 SFMLFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 # Дополнительные флаги линковки
-LDFLAGS  = -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef      \
+LDFLAGS  = -pg -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef      \
            -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations  \
            -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++     \
            -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual              \
@@ -17,9 +17,9 @@ LDFLAGS  = -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef      \
            -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE
 
 # Структура папок
-SRC_DIR  = src
-LIB_DIR  = lib
-BIN_DIR  = bin
+SRC_DIR   = src
+LIB_DIR   = lib
+BIN_DIR   = bin
 BUILD_DIR = build
 
 # Исходные файлы и цели

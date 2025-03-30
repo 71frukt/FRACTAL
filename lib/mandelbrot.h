@@ -38,6 +38,8 @@ struct EnvironmentInfo
     unsigned int      window_width;
     unsigned int      window_heigh;
 
+    sf::VertexArray  *vertex_array;
+
     sf::Text         *screen_text;
 
     Vector2d          offset;   // in pixels
@@ -65,7 +67,7 @@ FractalError PrintScreenText    (EnvironmentInfo *const env_info);              
 
 Vector2d     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
 
-
+void    FillScreenWithPixels    (const EnvironmentInfo *const env_info);
 
 sf::Color TricolorColoring      (const size_t iterations_num, const size_t max_iterations_num);
 sf::Color DarkTurquoiseColoring (const size_t iterations_num, const size_t max_iterations_num);

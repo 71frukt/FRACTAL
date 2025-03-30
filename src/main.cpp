@@ -6,13 +6,22 @@
 #include "flag_work.h"
 
 int main(const int argc, const char *argv[])
-{            
+{          
     EnvironmentInfo env_info = {};
     GetEnvironmentInfo(&env_info, argc, argv);
-
+    
     sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "sosal?");
     env_info.window = &window;
-    
+
+    sf::VertexArray vertex_array(sf::PrimitiveType::LineStrip, env_info.window_width * env_info.window_heigh);
+    env_info.vertex_array = &vertex_array;
+
+    // TestSfmlWindowRenderTime(&window, 100);
+
+    // return 0;
+
+
+
     sf::Font env_info_font;
     if (!env_info_font.openFromFile(FPS_FONT_NAME))
         fprintf(stderr, "Error when opening '%s'\n", FPS_FONT_NAME);
@@ -23,6 +32,7 @@ int main(const int argc, const char *argv[])
     env_info.screen_text = &env_info_text;
 
     while (window.isOpen())
+    // for (int i = 0; i < 10; i++)
     {
         while (std::optional<sf::Event> event = window.pollEvent()) 
         {

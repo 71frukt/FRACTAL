@@ -154,6 +154,10 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
+    // sf::VertexArray *vertex_array = env_info->vertex_array;
+    sf::VertexArray vertex_array(sf::PrimitiveType::Points, env_info->window_width * env_info->window_heigh);
+
+
     __m256d TEST_R2 = _mm256_set1_pd(env_info->border_radius_sq);
     __m256d ONES = _mm256_set1_pd(1.0);
 
@@ -213,16 +217,22 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
                 {
                     sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pd[i], max_calc_iterations_num); // sf::Color::White;
     
-                    Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
-                    Pixel pixel = {cur_point, pixel_color};
+                    vertex_array[(pixel_num_x + i) + pixel_num_y * window_width].position = Vector2f(pixel_num_x + i, pixel_num_y);
+                    vertex_array[(pixel_num_x + i) + pixel_num_y * window_width].color    = pixel_color;
+
+                    // Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
+                    // Pixel pixel = {cur_point, pixel_color};
     
-                    DrawPixel(pixel, env_info->window);
+                    // DrawPixel(pixel, env_info->window);
                 }
 
-                it_mask_bits = it_mask_bits << 8;
+                it_mask_bits >>= 1;
             }
         }    
     }
+
+    env_info->window->draw(vertex_array); // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
+
 
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
