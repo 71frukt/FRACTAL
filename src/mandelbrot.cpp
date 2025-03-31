@@ -2,7 +2,9 @@
 #include <math.h>
 #include <immintrin.h>
 
+
 #include "mandelbrot.h"
+#include "unfold_vector_funcs.h"
 
 
 void DrawPixel(Pixel pixel, sf::RenderWindow *const window)       // pixel = left-up corner of pixel (PIXEL_SIZE x PIXEL_SIZE)
@@ -20,6 +22,8 @@ FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
+    sf::VertexArray vertex_array = env_info->vertex_array;
+
     const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
     const int    border_radius_sq        = env_info->border_radius_sq;
 
@@ -33,9 +37,9 @@ FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
     
     Vector2d offset_on_complex_plane = {env_info->offset.x, env_info->offset.y}; 
 
-    for (int y = lu_window_corner.y; y <= rd_window_corner.y; y++)
+    for (int y = lu_window_corner.y; y < rd_window_corner.y; y++)
     {
-        for (int x = lu_window_corner.x; x <= rd_window_corner.x; x++)
+        for (int x = lu_window_corner.x; x < rd_window_corner.x; x++)
         {
             Vector2d const_complex = {(double)(x * env_info->scale * inverse_window_size_x) + offset_on_complex_plane.x ,
                                       (double)(y * env_info->scale * inverse_window_size_x) + offset_on_complex_plane.y};
@@ -54,22 +58,30 @@ FractalError DrawMandelbrot0(const EnvironmentInfo *const env_info)
                     break;
             }
 
-            sf::Color pixel_color = DarkTurquoiseColoring(n, max_calc_iterations_num);
+            ON_GRAPH_MODE(
+            sf::Color pixel_color = DarkTurquoiseColoring(n, max_calc_iterations_num); // sf::Color::White;
 
-            Vector2i cur_point = Vector2i {x, y} + rd_window_corner;
-            Pixel pixel = {(cur_point), pixel_color};
+            size_t num_in_vertex_array = (x - lu_window_corner.x) + (y - lu_window_corner.y) * window_size.x;
 
-            DrawPixel(pixel, env_info->window);
+            vertex_array[num_in_vertex_array].position = Vector2f(x - lu_window_corner.x, y - lu_window_corner.y);
+            vertex_array[num_in_vertex_array].color    = pixel_color;
+            );
         }
     }
+
+    ON_GRAPH_MODE(
+    env_info->window->draw(vertex_array);       // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
+    );
 
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
 }
 
-FractalError DrawMandelbrot1(const EnvironmentInfo *const env_info)
+FractalError DrawMandelbrot_cycles(const EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
+
+    sf::VertexArray vertex_array = env_info->vertex_array;
 
     const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
     const int    border_radius_sq        = env_info->border_radius_sq;
@@ -134,23 +146,29 @@ FractalError DrawMandelbrot1(const EnvironmentInfo *const env_info)
             {
                 if (iteration_num_pckd[i] < max_calc_iterations_num)
                 {
+                    ON_GRAPH_MODE(
                     sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pckd[i], max_calc_iterations_num); // sf::Color::White;
     
-                    Vector2i cur_point = Vector2i {(int) (pixel_num_x + i), (int) pixel_num_y};
-                    Pixel pixel = {cur_point, pixel_color};
-    
-                    DrawPixel(pixel, env_info->window);
+                    size_t num_in_vertex_array = (pixel_num_x + i) + pixel_num_y * window_width;
+
+                    vertex_array[num_in_vertex_array].position = Vector2f(pixel_num_x + i, pixel_num_y);
+                    vertex_array[num_in_vertex_array].color    = pixel_color;
+                    );
                 }
             }
         }    
     }
+
+    ON_GRAPH_MODE(
+    env_info->window->draw(vertex_array);       // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
+    );
 
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
 }
 
 
-FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
+FractalError DrawMandelbrot_intrinsics(const EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
@@ -213,16 +231,158 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
             {
                 if ((it_mask_bits && 1))
                 {
+                    ON_GRAPH_MODE(
                     sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pd[i], max_calc_iterations_num); // sf::Color::White;
     
                     size_t num_in_vertex_array = (pixel_num_x + i) + pixel_num_y * window_width;
 
                     vertex_array[num_in_vertex_array].position = Vector2f(pixel_num_x + i, pixel_num_y);
                     vertex_array[num_in_vertex_array].color    = pixel_color;
+                    );
                 }
 
                 it_mask_bits >>= 1;
             }
+        }    
+    }
+
+    ON_GRAPH_MODE(
+    env_info->window->draw(vertex_array);       // vertex_array[pixel_num_x * pixel_num_y].position = Vector2f(pixel_num_x, pixel_num_x);
+    );
+
+    ENV_INFO_ASSERT(env_info);
+    return SUCCESS_EXIT;
+}
+
+
+
+FractalError DrawMandelbrot_deployment(const EnvironmentInfo *const env_info)
+{
+    ENV_INFO_ASSERT(env_info);
+
+    
+    sf::VertexArray vertex_array = env_info->vertex_array;
+    
+    __m256d TEST_R2 = _mm256_set1_pd(env_info->border_radius_sq);
+    __m256d ONES = _mm256_set1_pd(1.0);    
+    
+    
+    const size_t max_calc_iterations_num = env_info->max_calc_iterations_num;
+    __m256d TEST_IT_NUM = _mm256_set1_pd(max_calc_iterations_num);
+    
+    const size_t window_width = (size_t)env_info->window_width;
+    const size_t window_heigh = (size_t)env_info->window_heigh;
+    
+    const double dx = env_info->scale / window_width;
+    const double dy = dx;
+    
+    double left_corner_x = -env_info->scale / 2 + env_info->offset.x;
+    double x0 = left_corner_x;
+    double y0 = -env_info->scale / 2 + env_info->offset.y;
+    
+    size_t k = 4;   // коэффициент развёртывания
+    for (size_t pixel_num_y = 0; pixel_num_y < window_heigh; pixel_num_y++, y0 += dy)
+    {
+        x0 = left_corner_x;
+        
+        for (size_t pixel_num_x = 0; pixel_num_x < window_width; pixel_num_x += 4 * k, x0 += dx * 4 * k)
+        {
+            SET1_UNFOLD_8(__m256d Y0, y0);
+                // __m256d Y0 = _mm256_set1_pd(y0);
+            SET1_UNFOLD_8(__m256d Y , y0);
+                // __m256d Y  = _mm256_set1_pd(y0);
+
+
+            __m256d X0_a = _mm256_set_pd(x0 + 3 * dx, x0 + 2 * dx, x0 + dx, x0);
+            __m256d X_a  = _mm256_set_pd(x0 + 3 * dx, x0 + 2 * dx, x0 + dx, x0);
+            
+            __m256d X0_b = _mm256_set_pd(x0 + 7 * dx, x0 + 6 * dx, x0 + 5 * dx, x0 + 4 * dx);
+            __m256d X_b  = _mm256_set_pd(x0 + 7 * dx, x0 + 6 * dx, x0 + 5 * dx, x0 + 4 * dx);
+
+            __m256d X0_c = _mm256_set_pd(x0 + 11 * dx, x0 + 10 * dx, x0 + 9 * dx, x0 + 8 * dx);
+            __m256d X_c  = _mm256_set_pd(x0 + 11 * dx, x0 + 10 * dx, x0 + 9 * dx, x0 + 8 * dx);
+
+            __m256d X0_d = _mm256_set_pd(x0 + 15 * dx, x0 + 14 * dx, x0 + 13 * dx, x0 + 12 * dx);
+            __m256d X_d  = _mm256_set_pd(x0 + 15 * dx, x0 + 14 * dx, x0 + 13 * dx, x0 + 12 * dx);
+
+            // __m256d X0_e = _mm256_set_pd(x0 + 19 * dx, x0 + 18 * dx, x0 + 17 * dx, x0 + 16 * dx);
+            // __m256d X_e  = _mm256_set_pd(x0 + 19 * dx, x0 + 18 * dx, x0 + 17 * dx, x0 + 16 * dx);
+
+            // __m256d X0_f = _mm256_set_pd(x0 + 23 * dx, x0 + 22 * dx, x0 + 21 * dx, x0 + 20 * dx);
+            // __m256d X_f  = _mm256_set_pd(x0 + 23 * dx, x0 + 22 * dx, x0 + 21 * dx, x0 + 20 * dx);
+
+            // __m256d X0_g = _mm256_set_pd(x0 + 27 * dx, x0 + 26 * dx, x0 + 25 * dx, x0 + 24 * dx);
+            // __m256d X_g  = _mm256_set_pd(x0 + 27 * dx, x0 + 26 * dx, x0 + 25 * dx, x0 + 24 * dx);
+            
+            // __m256d X0_h = _mm256_set_pd(x0 + 31 * dx, x0 + 30 * dx, x0 + 29 * dx, x0 + 28 * dx);
+            // __m256d X_h  = _mm256_set_pd(x0 + 31 * dx, x0 + 30 * dx, x0 + 29 * dx, x0 + 28 * dx);
+
+            SET1_UNFOLD_8(__m256d iteration_num_pd, 0);
+                // __m256d iteration_num_pd = _mm256_set1_pd(0);
+
+
+            for (size_t iteration_num = 0; iteration_num < max_calc_iterations_num; iteration_num++)
+            {   
+                MUL_UNFOLD_8(__m256d XX, X, X);
+                    // __m256d XX = _mm256_mul_pd(X, X); 
+                MUL_UNFOLD_8(__m256d YY, Y, Y);
+                    // __m256d YY = _mm256_mul_pd(Y, Y); 
+                MUL_UNFOLD_8(__m256d XY, X, Y);
+                    // __m256d XY = _mm256_mul_pd(X, Y);
+
+                ADD_UNFOLD_8(__m256d R2, XX, YY);
+                    // __m256d R2 = _mm256_add_pd(XX, YY);     // расстояние до этой точки в квадрате
+
+                CMP_UNFOLD_8(__m256d r_cmp_pd, R2, TEST_R2, _CMP_LE_OQ);
+                    // __m256d r_cmp_pd = _mm256_cmp_pd(R2, TEST_R2, _CMP_LE_OQ);
+                MOVEMASK_UNFOLD_8(int r_mask_bits, r_cmp_pd);
+                    // int r_mask_bits  = _mm256_movemask_pd(r_cmp_pd);      // if r2 <= test_r2
+                
+                    GET_NORMAL_CMP_MASK(r_cmp_pd, r_cmp_pd, ONES);
+                    // r_cmp_pd = _mm256_and_pd(r_cmp_pd, ONES);
+                
+                if (MASK_AND(!r_mask_bits)) break;
+                    // if (!r_mask_bits) break;
+
+                ADD_UNFOLD_8(iteration_num_pd, iteration_num_pd, r_cmp_pd);
+                    // iteration_num_pd = _mm256_add_pd(iteration_num_pd, r_cmp_pd);
+
+                SUB_UNFOLD_8(__m256d XXsubYY, XX, YY);
+                ADD_UNFOLD_8(__m256d XYaddXY, XY, XY);
+
+                ADD_UNFOLD_8(X, XXsubYY, X0);
+                    // X = _mm256_add_pd(_mm256_sub_pd(XX, YY), X0);
+                ADD_UNFOLD_8(Y, XYaddXY, Y0);
+                    // Y = _mm256_add_pd(_mm256_add_pd(XY, XY), Y0);
+
+            }
+            
+            CMP_UNFOLD_8(__m256d it_cmp_pd, iteration_num_pd, TEST_IT_NUM, _CMP_LT_OQ);
+                // __m256d it_cmp_pd = _mm256_cmp_pd(iteration_num_pd, TEST_IT_NUM, _CMP_LT_OQ);
+
+            MOVEMASK_UNFOLD_8(int it_mask_bits, it_cmp_pd);
+                // int it_mask_bits  = _mm256_movemask_pd(it_cmp_pd);
+
+            DRAW_VEC(it_mask_bits_a, iteration_num_pd_a, 0 );
+            DRAW_VEC(it_mask_bits_b, iteration_num_pd_b, 4 );
+            DRAW_VEC(it_mask_bits_c, iteration_num_pd_c, 8 );
+            DRAW_VEC(it_mask_bits_d, iteration_num_pd_d, 12);
+            // DRAW_VEC(it_mask_bits_e, iteration_num_pd_e, 16);
+            // DRAW_VEC(it_mask_bits_f, iteration_num_pd_f, 20);
+            // DRAW_VEC(it_mask_bits_g, iteration_num_pd_g, 24);
+            // DRAW_VEC(it_mask_bits_h, iteration_num_pd_h, 28);
+
+            // for (size_t i = 0; i < 4; i++)
+            // {
+                // sf::Color pixel_color = DarkTurquoiseColoring(iteration_num_pd[i], max_calc_iterations_num * (it_mask_bits && 1)); // sf::Color::White;      // if (it_mask_bits && 1) == 0 -> Black color
+
+                // size_t num_in_vertex_array = (pixel_num_x + i) + pixel_num_y * window_width;
+
+                // vertex_array[num_in_vertex_array].position = Vector2f(pixel_num_x + i, pixel_num_y);
+                // vertex_array[num_in_vertex_array].color    = pixel_color;
+
+            //     it_mask_bits >>= 1;
+            // }
         }    
     }
 
@@ -231,6 +391,7 @@ FractalError DrawMandelbrot2(const EnvironmentInfo *const env_info)
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
 }
+
 
 
 Vector2d GetWindowOffset(const sf::Event::KeyPressed *const key_event)
@@ -255,55 +416,13 @@ Vector2d GetWindowOffset(const sf::Event::KeyPressed *const key_event)
     }
 }
 
-FractalError KeyboardHandler(const sf::Event::KeyPressed *const key_event, EnvironmentInfo *const env_info)
-{
-    ENV_INFO_ASSERT(env_info);
-    KEYBOARD_ASSERT(key_event);
-
-    switch (key_event->code) 
-    {
-        case sf::Keyboard::Key::D:
-            env_info->offset.x += OFFSET_VELOCITY * env_info->scale;
-            break;
-
-        case sf::Keyboard::Key::A:
-            env_info->offset.x -= OFFSET_VELOCITY * env_info->scale;
-            break;
-
-        case sf::Keyboard::Key::W:
-            env_info->offset.y -= OFFSET_VELOCITY * env_info->scale;
-            break;
-
-        case sf::Keyboard::Key::S:
-            env_info->offset.y += OFFSET_VELOCITY * env_info->scale;
-            break;
-
-        case sf::Keyboard::Key::Add:
-            env_info->scale *= 0.9;
-            break;
-
-        case sf::Keyboard::Key::Subtract:
-            env_info->scale *= 1.1;
-            break;
-
-        default:
-            break;
-    }
-
-    ENV_INFO_ASSERT(env_info);
-    KEYBOARD_ASSERT(key_event);
-
-    return SUCCESS_EXIT;
-}
-
 
 FractalError MovementHandler(EnvironmentInfo *const env_info)
 {
     ENV_INFO_ASSERT(env_info);
 
     static double accelerate_coeff = 1;
-    static bool   is_movement;
-    is_movement = false;
+    bool is_movement = false;
 
     double movement_coeff = accelerate_coeff * env_info->scale / env_info->cur_fps;
 

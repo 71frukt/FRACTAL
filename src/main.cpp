@@ -4,11 +4,17 @@
 #include "complex_nums.h"
 #include "mandelbrot.h"
 #include "flag_work.h"
+#include "benchmark.h"
 
 int main(const int argc, const char *argv[])
 {          
+    #ifdef TEST_BENCHMARK
+        TestBenchmark();
+        return 0;
+    #endif
+
     EnvironmentInfo env_info = {};
-    GetEnvironmentInfo(&env_info, argc, argv);
+    GetEnvInfoFromCmd(&env_info, argc, argv);
     
     sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "sosal?");
     env_info.window = &window;
@@ -37,10 +43,9 @@ int main(const int argc, const char *argv[])
 
         window.clear(sf::Color::Black);
 
-        ERROR_HANDLER(MovementHandler(&env_info));
-
-        ERROR_HANDLER(DrawMandelbrot2(&env_info));
+        ERROR_HANDLER(env_info.DrawFunc(&env_info));
         ERROR_HANDLER(PrintScreenText(&env_info));      // calculate and print fps and print scale
+        ERROR_HANDLER(MovementHandler(&env_info));
         window.display();
     }
 

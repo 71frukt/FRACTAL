@@ -3,14 +3,17 @@
 
 #include "flag_work.h"
 
-void GetEnvironmentInfo(EnvironmentInfo *env_info, const int argc, const char *argv[])
+void GetEnvInfoFromCmd(EnvironmentInfo *env_info, const int argc, const char *argv[])
 {
     assert(env_info);
     assert(argv);
     assert(argc > 0);
     assert(env_info);
 
-    for (int arg_counter = 1; arg_counter < argc; )   // два флага, два имени файла, при каждом i рассматриваем argv[i] и argv[i+1]
+    env_info->DrawFunc = DrawMandelbrot_intrinsics;     // по умолчанию самая быстрая
+    env_info->cur_fps  = 1;                             // хотя бы какое-то ненулевое начальное значение, чтобы избежать деления на 0 при расчёте перемещения
+
+    for (int arg_counter = 1; arg_counter < argc; )     // два флага, два имени файла, при каждом i рассматриваем argv[i] и argv[i+1]
     {
         for (size_t flag_counter = 0; flag_counter < FLAGS_NUM; flag_counter++)
         {
@@ -44,16 +47,27 @@ void LoadCustomSettings(EnvironmentInfo *env_info, int *arg_counter, const char 
     env_info->use_custom_settings = true;
     env_info->source_settings_file = argv[(*arg_counter)++];
     
-    FILE *settings_file = fopen(env_info->source_settings_file, "r");
-    assert(settings_file);
+    GetEnvInfoFromFile(env_info, env_info->source_settings_file);
+
+    // FILE *settings_file = fopen(env_info->source_settings_file, "r");
+    // assert(settings_file);
+    
+    // fscanf(settings_file, "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lu" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%u" "%*[^\n]%*c" "%u" ,     // TODO check %*[^\n] error
+    //     &env_info->offset.x, &env_info->offset.y, &env_info->max_calc_iterations_num, &env_info->scale, &env_info->border_radius_sq, &env_info->window_width, &env_info->window_heigh);
+        
+    // fclose(settings_file);
+}
+
+void GetEnvInfoFromFile(EnvironmentInfo *env_info, const char *const file_name)
+{
+    FILE *settings_file = fopen(file_name, "r");
+    if (settings_file == NULL)
+        fprintf(stderr, "Error opening configuration file\n");
     
     fscanf(settings_file, "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lu" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%u" "%*[^\n]%*c" "%u" ,     // TODO check %*[^\n] error
         &env_info->offset.x, &env_info->offset.y, &env_info->max_calc_iterations_num, &env_info->scale, &env_info->border_radius_sq, &env_info->window_width, &env_info->window_heigh);
         
     fclose(settings_file);
-    
-    printf("%lf" "%lf" "%lu" "%lf" "%lf" "%u" "%u" ,     // TODO check %*[^\n] error
-        env_info->offset.x, env_info->offset.y, env_info->max_calc_iterations_num, env_info->scale, env_info->border_radius_sq, env_info->window_width, env_info->window_heigh);
 }
 
 void NeedToSaveFinalSettings(EnvironmentInfo *env_info, int *arg_counter, const char *argv[])   // information is stored that you will need to save the settings at the end and where
@@ -66,6 +80,37 @@ void NeedToSaveFinalSettings(EnvironmentInfo *env_info, int *arg_counter, const 
     env_info->dest_settings_file = argv[(*arg_counter)++];
 
     fprintf(stderr, "filename = '%s'\n", env_info->dest_settings_file);
+}
+
+void SetDrawFunc(EnvironmentInfo *env_info, int *arg_counter, const char *argv[])
+{
+    assert(env_info);
+    assert(arg_counter);
+    assert(argv);
+
+    switch (atoi(argv[*arg_counter]))
+    {    
+    case 0:
+        env_info->DrawFunc = DrawMandelbrot0;
+        break;
+    
+    case 1:
+        env_info->DrawFunc = DrawMandelbrot_cycles;
+        break;
+
+    case 2:
+        env_info->DrawFunc = DrawMandelbrot_intrinsics;
+        break;
+
+    case 3:
+        env_info->DrawFunc = DrawMandelbrot_intrinsics;
+        break;
+
+    default:
+        break;
+    }
+
+    (*arg_counter)++;
 }
 
 FractalError SaveFinalSettings(EnvironmentInfo *env_info)
@@ -89,3 +134,4 @@ FractalError SaveFinalSettings(EnvironmentInfo *env_info)
     ENV_INFO_ASSERT(env_info);
     return SUCCESS_EXIT;
 }
+
