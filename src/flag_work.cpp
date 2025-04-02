@@ -10,11 +10,13 @@ void GetEnvInfoFromCmd(EnvironmentInfo *env_info, const int argc, const char *ar
     assert(argc > 0);
     assert(env_info);
 
-    env_info->DrawFunc = DrawMandelbrot_intrinsics;     // по умолчанию самая быстрая
+    env_info->DrawFunc = DrawMandelbrot_deployment;     // по умолчанию самая быстрая
     env_info->cur_fps  = 1;                             // хотя бы какое-то ненулевое начальное значение, чтобы избежать деления на 0 при расчёте перемещения
 
     for (int arg_counter = 1; arg_counter < argc; )     // два флага, два имени файла, при каждом i рассматриваем argv[i] и argv[i+1]
     {
+        int prev_arg_counter = arg_counter;
+
         for (size_t flag_counter = 0; flag_counter < FLAGS_NUM; flag_counter++)
         {
             if (strcmp(argv[arg_counter], FLAGS[flag_counter].name) == 0)
@@ -24,6 +26,11 @@ void GetEnvInfoFromCmd(EnvironmentInfo *env_info, const int argc, const char *ar
 
                 break;
             }
+        }
+
+        if (prev_arg_counter == arg_counter)
+        {
+            fprintf(stderr, "Error reading arg[%d] = '%s'\n", arg_counter, argv[arg_counter]);
         }
     }
 

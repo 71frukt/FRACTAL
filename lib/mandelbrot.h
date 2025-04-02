@@ -78,6 +78,14 @@ FractalError PrintScreenText    (EnvironmentInfo *const env_info);              
 Vector2d     GetWindowOffset    (const sf::Event::KeyPressed *const key_event);
 
 
+enum ColoringMode
+{
+    TRICOLOUR,
+    DARK_TURQUOISE
+};
+
+sf::Color SetPixelColor(const size_t iterations_num, const size_t max_iterations_num, const ColoringMode coloring_mode);
+
 sf::Color TricolorColoring      (const size_t iterations_num, const size_t max_iterations_num);
 sf::Color DarkTurquoiseColoring (const size_t iterations_num, const size_t max_iterations_num);
 

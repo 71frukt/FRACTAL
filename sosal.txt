@@ -1,0 +1,7 @@
+-0.750199 		// offset.x                   
+0.015851 		// offset.y                   
+256 		    // max_calc_iterations_num    
+2.504347 		// scale                      
+9.000000  		// border_radius_sq           
+2000  		    // window_width               
+1600  		    // window_heigh               
