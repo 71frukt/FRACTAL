@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <immintrin.h>
+#include <omp.h>
 
 
 #include "mandelbrot.h"
@@ -191,6 +192,7 @@ FractalError DrawMandelbrot_intrinsics(const EnvironmentInfo *const env_info)
     double x0 = left_corner_x;
     double y0 = -env_info->scale / 2 + env_info->offset.y;
     
+    
     for (size_t pixel_num_y = 0; pixel_num_y < window_heigh; pixel_num_y++, y0 += dy)
     {
         x0 = left_corner_x;
@@ -281,10 +283,9 @@ FractalError DrawMandelbrot_deployment(const EnvironmentInfo *const env_info)
     double y0 = -env_info->scale / 2 + env_info->offset.y;
     
     size_t k = 2;   // коэффициент развёртывания
-    for (size_t pixel_num_y = 0; pixel_num_y < window_heigh; pixel_num_y++, y0 += dy)
+    
+    for (size_t pixel_num_y = 0; pixel_num_y < window_heigh; pixel_num_y++, y0 += dy, x0 = left_corner_x)
     {
-        x0 = left_corner_x;
-        
         for (size_t pixel_num_x = 0; pixel_num_x < window_width; pixel_num_x += 4 * k, x0 += dx * 4 * k)
         {
             SET1_UNFOLD_8(__m256d Y0, y0);

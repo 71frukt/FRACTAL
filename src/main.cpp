@@ -16,7 +16,7 @@ int main(const int argc, const char *argv[])
     EnvironmentInfo env_info = {};
     GetEnvInfoFromCmd(&env_info, argc, argv);
     
-    sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "sosal?");
+    sf::RenderWindow window(sf::VideoMode({env_info.window_width, env_info.window_heigh}), "mandelbrot");
     env_info.window = &window;
 
     sf::VertexArray vertex_array(sf::PrimitiveType::Points, env_info.window_width * env_info.window_heigh);
@@ -25,6 +25,7 @@ int main(const int argc, const char *argv[])
     sf::Font env_info_font;
     if (!env_info_font.openFromFile(FPS_FONT_NAME))
         fprintf(stderr, "Error when opening '%s'\n", FPS_FONT_NAME);
+        
     sf::Text env_info_text(env_info_font);
     env_info_text.setCharacterSize(30);
     env_info_text.setFillColor(sf::Color::Green);

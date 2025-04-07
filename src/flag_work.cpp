@@ -71,8 +71,13 @@ void GetEnvInfoFromFile(EnvironmentInfo *env_info, const char *const file_name)
     if (settings_file == NULL)
         fprintf(stderr, "Error opening configuration file\n");
     
-    fscanf(settings_file, "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lu" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%lf" "%*[^\n]%*c" "%u" "%*[^\n]%*c" "%u" ,     // TODO check %*[^\n] error
-        &env_info->offset.x, &env_info->offset.y, &env_info->max_calc_iterations_num, &env_info->scale, &env_info->border_radius_sq, &env_info->window_width, &env_info->window_heigh);
+    fscanf(settings_file, "%lf" "%*[^\n]%*c" 
+                          "%lf" "%*[^\n]%*c" 
+                          "%lu" "%*[^\n]%*c"
+                          "%lf" "%*[^\n]%*c"
+                          "%lf" "%*[^\n]%*c"
+                          "%u" "%*[^\n]%*c" "%u",     // TODO check %*[^\n] error
+           &env_info->offset.x, &env_info->offset.y, &env_info->max_calc_iterations_num, &env_info->scale, &env_info->border_radius_sq, &env_info->window_width, &env_info->window_heigh);
         
     fclose(settings_file);
 }

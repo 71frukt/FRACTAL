@@ -3,7 +3,6 @@
 
 #include <immintrin.h>
 
-
 #define MUL_UNFOLD_8(dest_vec, vecA, vecB)              \
     dest_vec##_a = _mm256_mul_pd(vecA##_a, vecB##_a);    \
     dest_vec##_b = _mm256_mul_pd(vecA##_b, vecB##_b);     \
@@ -99,7 +98,7 @@ int_mask##_b = _mm256_movemask_pd(vec_source##_b);        \
 for (size_t i = 0; i < 4; i++)                                                                                                                     \
 {                                                                                                                                                   \
     ON_GRAPH_MODE(                                                                                                                                   \
-    sf::Color pixel_color = SetPixelColor(iteration_num_pd[i], max_calc_iterations_num * (it_mask_bits && 1), DARK_TURQUOISE);                        \
+    sf::Color pixel_color = SetPixelColor(iteration_num_pd[i], max_calc_iterations_num * (it_mask_bits && 1), TRICOLOUR);                        \
                                                                                                                                                        \
     size_t num_in_vertex_array = (pixel_num_x + i + additives) + pixel_num_y * window_width;                                                            \
                                                                                                                                                          \
